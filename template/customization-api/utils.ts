@@ -19,7 +19,7 @@ export {default as useIsPSTN} from '../src/utils/useIsPSTN';
 
 //hook to manage audio/video states
 export {default as useIsAudioEnabled} from '../src/utils/useIsAudioEnabled';
-export {default as useIsVideoEnabled} from '../src/utils/useIsVideoEnabled';
+export { default as useIsVideoEnabled } from '../src/utils/useIsVideoEnabled';
 
 //hooks used for navigation
 export {useHistory, useParams} from '../src/components/Router';
@@ -27,4 +27,7 @@ export {useHistory, useParams} from '../src/components/Router';
 //export common function
 export {isWeb, isIOS, isAndroid, isDesktop} from '../src/utils/common';
 export {default as isMobileOrTablet} from '../src/utils/isMobileOrTablet';
-export {useLocalUid} from '../agora-rn-uikit';
+export { useLocalUid } from '../agora-rn-uikit';
+
+//export noise suppression function
+export { default as useNoiseSuppressionLocal } from '../src/utils/useNoiseSuppressionLocal';

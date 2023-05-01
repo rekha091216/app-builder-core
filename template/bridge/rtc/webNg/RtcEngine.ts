@@ -25,17 +25,17 @@ import AgoraRTC, {
   ClientRoleOptions,
   CameraVideoTrackInitConfig,
   MicrophoneAudioTrackInitConfig,
-} from 'agora-rtc-sdk-ng';
+} from "agora-rtc-sdk-ng";
 import type {
   RtcEngineEvents,
   Subscription,
-} from 'react-native-agora/lib/typescript/src/common/RtcEvents';
-import {VideoProfile} from '../quality';
-import {ChannelProfile, ClientRole} from '../../../agora-rn-uikit';
-import {role, mode} from './Types';
-import {LOG_ENABLED, GEO_FENCING} from '../../../config.json';
-import {Platform} from 'react-native';
-import isMobileOrTablet from '../../../src/utils/isMobileOrTablet';
+} from "react-native-agora/lib/typescript/src/common/RtcEvents";
+import { VideoProfile } from "../quality";
+import { ChannelProfile, ClientRole } from "../../../agora-rn-uikit";
+import { role, mode } from "./Types";
+import { LOG_ENABLED, GEO_FENCING } from "../../../config.json";
+import { Platform } from "react-native";
+import isMobileOrTablet from "../../../src/utils/isMobileOrTablet";
 
 interface MediaDeviceInfo {
   readonly deviceId: string;
@@ -58,47 +58,47 @@ export enum AREAS {
   /**
    * China.
    */
-  CHINA = 'CHINA',
+  CHINA = "CHINA",
   /**
    * Asia, excluding Mainland China.
    */
-  ASIA = 'ASIA',
+  ASIA = "ASIA",
   /**
    * North America.
    */
-  NORTH_AMERICA = 'NORTH_AMERICA',
+  NORTH_AMERICA = "NORTH_AMERICA",
   /**
    * Europe.
    */
-  EUROPE = 'EUROPE',
+  EUROPE = "EUROPE",
   /**
    * Japan.
    */
-  JAPAN = 'JAPAN',
+  JAPAN = "JAPAN",
   /**
    * India.
    */
-  INDIA = 'INDIA',
+  INDIA = "INDIA",
   /**
    * @ignore
    */
-  OCEANIA = 'OCEANIA',
+  OCEANIA = "OCEANIA",
   /**
    * @ignore
    */
-  SOUTH_AMERICA = 'SOUTH_AMERICA',
+  SOUTH_AMERICA = "SOUTH_AMERICA",
   /**
    * @ignore
    */
-  AFRICA = 'AFRICA',
+  AFRICA = "AFRICA",
   /**
    * @ignore
    */
-  OVERSEA = 'OVERSEA',
+  OVERSEA = "OVERSEA",
   /**
    * Global.
    */
-  GLOBAL = 'GLOBAL',
+  GLOBAL = "GLOBAL",
 }
 
 export enum RnEncryptionEnum {
@@ -140,8 +140,8 @@ export enum RnEncryptionEnum {
 }
 
 export enum VideoStreamType {
-  'HIGH',
-  'LOW',
+  "HIGH",
+  "LOW",
 }
 
 interface LocalStream {
@@ -177,20 +177,20 @@ export default class RtcEngine {
   public client: any | IAgoraRTCClient;
   public screenClient: any | IAgoraRTCClient;
   public eventsMap = new Map<string, callbackType>([
-    ['UserJoined', () => null],
-    ['UserOffline', () => null],
-    ['JoinChannelSuccess', () => null],
-    ['ScreenshareStopped', () => null],
-    ['RemoteAudioStateChanged', () => null],
-    ['RemoteVideoStateChanged', () => null],
-    ['NetworkQuality', () => null],
-    ['ActiveSpeaker', () => null],
+    ["UserJoined", () => null],
+    ["UserOffline", () => null],
+    ["JoinChannelSuccess", () => null],
+    ["ScreenshareStopped", () => null],
+    ["RemoteAudioStateChanged", () => null],
+    ["RemoteVideoStateChanged", () => null],
+    ["NetworkQuality", () => null],
+    ["ActiveSpeaker", () => null],
   ]);
   public localStream: LocalStream = {};
   public screenStream: ScreenStream = {};
   public remoteStreams = new Map<UID, RemoteStream>();
   private inScreenshare: Boolean = false;
-  private videoProfile: VideoProfile = '480p_9';
+  private videoProfile: VideoProfile = "480p_9";
   private isPublished = false;
   private isAudioEnabled = false;
   private isVideoEnabled = false;
@@ -201,7 +201,8 @@ export default class RtcEngine {
   private audioDeviceId = undefined;
   private muteLocalVideoMutex = false;
   private muteLocalAudioMutex = false;
-  private speakerDeviceId = '';
+  private speakerDeviceId = "";
+  private isAinsEnabled = false;
   // Create channel profile and set it here
 
   // Create channel profile and set it here
@@ -223,7 +224,7 @@ export default class RtcEngine {
 
   async enableAudio(): Promise<void> {
     const audioConfig: MicrophoneAudioTrackInitConfig = {
-      bypassWebAudio: Platform.OS == 'web' && isMobileOrTablet(),
+      bypassWebAudio: Platform.OS == "web" && isMobileOrTablet(),
       // microphoneId: this.audioDeviceId,
     };
     try {
@@ -235,7 +236,7 @@ export default class RtcEngine {
       this.isAudioEnabled = true;
     } catch (e) {
       let audioError = e;
-      e.status = {audioError};
+      e.status = { audioError };
       throw e;
     }
   }
@@ -251,7 +252,7 @@ export default class RtcEngine {
      */
 
     const audioConfig: MicrophoneAudioTrackInitConfig = {
-      bypassWebAudio: Platform.OS == 'web' && isMobileOrTablet(),
+      bypassWebAudio: Platform.OS == "web" && isMobileOrTablet(),
       // microphoneId: this.audioDeviceId,
     };
     const videoConfig: CameraVideoTrackInitConfig = {
@@ -262,7 +263,7 @@ export default class RtcEngine {
       let [localAudio, localVideo] =
         await AgoraRTC.createMicrophoneAndCameraTracks(
           audioConfig,
-          videoConfig,
+          videoConfig
         );
       this.localStream.audio = localAudio;
       this.localStream.video = localVideo;
@@ -274,6 +275,7 @@ export default class RtcEngine {
         .getSettings().deviceId;
       this.isVideoEnabled = true;
       this.isAudioEnabled = true;
+      this.isAinsEnabled = false;
     } catch (e) {
       let audioError = false;
       let videoError = false;
@@ -295,10 +297,11 @@ export default class RtcEngine {
           ?.getMediaStreamTrack()
           .getSettings().deviceId;
         this.isVideoEnabled = true;
+        this.isAinsEnabled = false;
       } catch (error) {
         videoError = error;
       }
-      e.status = {audioError, videoError};
+      e.status = { audioError, videoError };
       throw e;
       // if (audioError && videoError) throw e;
       // else
@@ -309,7 +312,7 @@ export default class RtcEngine {
   }
 
   async enableAudioVolumeIndication(interval, smooth, isLocal) {
-    AgoraRTC.setParameter('AUDIO_VOLUME_INDICATION_INTERVAL', interval);
+    AgoraRTC.setParameter("AUDIO_VOLUME_INDICATION_INTERVAL", interval);
     this.client.enableAudioVolumeIndicator();
   }
 
@@ -326,21 +329,21 @@ export default class RtcEngine {
 
         if (tracks.length > 0) {
           await this.client.publish(tracks);
-          if (tracks[0].trackMediaType === 'audio') {
+          if (tracks[0].trackMediaType === "audio") {
             this.isAudioPublished = true;
-          } else if (tracks[0].trackMediaType === 'video') {
+          } else if (tracks[0].trackMediaType === "video") {
             this.isVideoPublished = true;
           }
 
-          if (tracks[1]?.trackMediaType === 'audio') {
+          if (tracks[1]?.trackMediaType === "audio") {
             this.isAudioPublished = true;
-          } else if (tracks[1]?.trackMediaType === 'video') {
+          } else if (tracks[1]?.trackMediaType === "video") {
             this.isVideoPublished = true;
           }
 
           if (this.isPublished === false) {
             this.isPublished = true;
-            (this.eventsMap.get('JoinChannelSuccess') as callbackType)();
+            (this.eventsMap.get("JoinChannelSuccess") as callbackType)();
           }
         }
       } catch (e) {
@@ -354,47 +357,47 @@ export default class RtcEngine {
     token: string,
     channelName: string,
     optionalInfo: string,
-    optionalUid: number,
+    optionalUid: number
   ): Promise<void> {
     // TODO create agora client here
-    this.client.on('user-joined', (user) => {
-      (this.eventsMap.get('UserJoined') as callbackType)(user.uid);
-      (this.eventsMap.get('RemoteVideoStateChanged') as callbackType)(
+    this.client.on("user-joined", (user) => {
+      (this.eventsMap.get("UserJoined") as callbackType)(user.uid);
+      (this.eventsMap.get("RemoteVideoStateChanged") as callbackType)(
         user.uid,
         0,
         0,
-        0,
+        0
       );
-      (this.eventsMap.get('RemoteAudioStateChanged') as callbackType)(
+      (this.eventsMap.get("RemoteAudioStateChanged") as callbackType)(
         user.uid,
         0,
         0,
-        0,
+        0
       );
     });
 
-    this.client.on('user-left', (user) => {
+    this.client.on("user-left", (user) => {
       const uid = user.uid;
       if (this.remoteStreams.has(uid)) {
         this.remoteStreams.delete(uid);
       }
-      (this.eventsMap.get('UserOffline') as callbackType)(uid);
+      (this.eventsMap.get("UserOffline") as callbackType)(uid);
       // (this.eventsMap.get('UserJoined') as callbackType)(uid);
     });
-    this.client.on('user-published', async (user, mediaType) => {
+    this.client.on("user-published", async (user, mediaType) => {
       // Initiate the subscription
       if (this.inScreenshare && user.uid === this.screenClient.uid) {
-        (this.eventsMap.get('RemoteVideoStateChanged') as callbackType)(
+        (this.eventsMap.get("RemoteVideoStateChanged") as callbackType)(
           user.uid,
           2,
           0,
-          0,
+          0
         );
       } else {
         await this.client.subscribe(user, mediaType);
       }
       // If the subscribed track is an audio track
-      if (mediaType === 'audio') {
+      if (mediaType === "audio") {
         const audioTrack = user.audioTrack;
         // Play the audio
         audioTrack?.play();
@@ -408,11 +411,11 @@ export default class RtcEngine {
             .get(user.uid)
             ?.audio?.setPlaybackDevice(this.speakerDeviceId);
         }
-        (this.eventsMap.get('RemoteAudioStateChanged') as callbackType)(
+        (this.eventsMap.get("RemoteAudioStateChanged") as callbackType)(
           user.uid,
           2,
           0,
-          0,
+          0
         );
       } else {
         const videoTrack = user.videoTrack;
@@ -422,37 +425,37 @@ export default class RtcEngine {
           ...this.remoteStreams.get(user.uid),
           video: videoTrack,
         });
-        (this.eventsMap.get('RemoteVideoStateChanged') as callbackType)(
+        (this.eventsMap.get("RemoteVideoStateChanged") as callbackType)(
           user.uid,
           2,
           0,
-          0,
+          0
         );
       }
     });
-    this.client.on('user-unpublished', async (user, mediaType) => {
-      if (mediaType === 'audio') {
-        const {audio, ...rest} = this.remoteStreams.get(user.uid);
+    this.client.on("user-unpublished", async (user, mediaType) => {
+      if (mediaType === "audio") {
+        const { audio, ...rest } = this.remoteStreams.get(user.uid);
         this.remoteStreams.set(user.uid, rest);
-        (this.eventsMap.get('RemoteAudioStateChanged') as callbackType)(
+        (this.eventsMap.get("RemoteAudioStateChanged") as callbackType)(
           user.uid,
           0,
           0,
-          0,
+          0
         );
       } else {
-        const {video, ...rest} = this.remoteStreams.get(user.uid);
+        const { video, ...rest } = this.remoteStreams.get(user.uid);
         this.remoteStreams.set(user.uid, rest);
-        (this.eventsMap.get('RemoteVideoStateChanged') as callbackType)(
+        (this.eventsMap.get("RemoteVideoStateChanged") as callbackType)(
           user.uid,
           0,
           0,
-          0,
+          0
         );
       }
     });
 
-    this.client.on('volume-indicator', (volumes) => {
+    this.client.on("volume-indicator", (volumes) => {
       const highestvolumeObj = volumes.reduce(
         (highestVolume, volume, index) => {
           if (highestVolume === null) {
@@ -465,7 +468,7 @@ export default class RtcEngine {
           }
           // console.log(`${index} UID ${volume.uid} Level ${volume.level}`);
         },
-        null,
+        null
       );
       const activeSpeakerUid =
         highestvolumeObj && highestvolumeObj?.level > 0 && highestvolumeObj?.uid
@@ -475,7 +478,7 @@ export default class RtcEngine {
       //To avoid infinite calling dispatch checking if condition.
       if (this.activeSpeakerUid !== activeSpeakerUid) {
         const activeSpeakerCallBack = this.eventsMap.get(
-          'ActiveSpeaker',
+          "ActiveSpeaker"
         ) as callbackType;
         activeSpeakerCallBack(activeSpeakerUid);
         this.activeSpeakerUid = activeSpeakerUid;
@@ -483,21 +486,21 @@ export default class RtcEngine {
     });
 
     // this.client.on('stream-fallback', (evt))
-    this.client.on('stream-type-changed', function (uid, streamType) {
-      console.log('[fallback]: ', uid, streamType);
+    this.client.on("stream-type-changed", function (uid, streamType) {
+      console.log("[fallback]: ", uid, streamType);
     });
 
     this.client.on(
-      'network-quality',
-      async ({downlinkNetworkQuality, uplinkNetworkQuality}) => {
+      "network-quality",
+      async ({ downlinkNetworkQuality, uplinkNetworkQuality }) => {
         const networkQualityIndicatorCallback = this.eventsMap.get(
-          'NetworkQuality',
+          "NetworkQuality"
         ) as callbackType;
 
         networkQualityIndicatorCallback(
           0,
           downlinkNetworkQuality,
-          uplinkNetworkQuality,
+          uplinkNetworkQuality
         );
 
         const remoteUserNetworkQualities =
@@ -507,22 +510,22 @@ export default class RtcEngine {
           networkQualityIndicatorCallback(
             uid,
             remoteUserNetworkQualities[uid].downlinkNetworkQuality,
-            remoteUserNetworkQualities[uid].uplinkNetworkQuality,
+            remoteUserNetworkQualities[uid].uplinkNetworkQuality
           );
         });
-      },
+      }
     );
 
     await this.client.join(
       this.appId,
       channelName,
       token || null,
-      optionalUid || null,
+      optionalUid || null
     );
     this.isJoined = true;
 
     await this.publish();
-    console.log('enabling screen sleep');
+    console.log("enabling screen sleep");
   }
 
   async leaveChannel(): Promise<void> {
@@ -532,29 +535,29 @@ export default class RtcEngine {
       stream.audio?.close();
     });
     this.remoteStreams.clear();
-    console.log('disabling screen sleep');
+    console.log("disabling screen sleep");
   }
 
   addListener<EventType extends keyof RtcEngineEvents>(
     event: EventType,
-    listener: RtcEngineEvents[EventType],
+    listener: RtcEngineEvents[EventType]
   ): Subscription {
     if (
-      event === 'UserJoined' ||
-      event === 'UserOffline' ||
-      event === 'JoinChannelSuccess' ||
-      event === 'ScreenshareStopped' ||
-      event === 'RemoteAudioStateChanged' ||
-      event === 'RemoteVideoStateChanged' ||
-      event === 'NetworkQuality' ||
-      event === 'ActiveSpeaker'
+      event === "UserJoined" ||
+      event === "UserOffline" ||
+      event === "JoinChannelSuccess" ||
+      event === "ScreenshareStopped" ||
+      event === "RemoteAudioStateChanged" ||
+      event === "RemoteVideoStateChanged" ||
+      event === "NetworkQuality" ||
+      event === "ActiveSpeaker"
     ) {
       this.eventsMap.set(event, listener as callbackType);
     }
     return {
       remove: () => {
         console.log(
-          'Use destroy method to remove all the event listeners from the RtcEngine instead.',
+          "Use destroy method to remove all the event listeners from the RtcEngine instead."
         );
       },
     };
@@ -587,7 +590,7 @@ export default class RtcEngine {
       }
       console.error(
         e,
-        '\n Be sure to invoke the enableVideo method before using this method.',
+        "\n Be sure to invoke the enableVideo method before using this method."
       );
     }
   }
@@ -622,7 +625,7 @@ export default class RtcEngine {
       }
       console.error(
         e,
-        '\n Be sure to invoke the enableVideo method before using this method.',
+        "\n Be sure to invoke the enableVideo method before using this method."
       );
     }
   }
@@ -644,7 +647,7 @@ export default class RtcEngine {
   }
 
   async getDevices(
-    callback: (devices: Array<MediaDeviceInfo>) => void,
+    callback: (devices: Array<MediaDeviceInfo>) => void
   ): Promise<Array<MediaDeviceInfo>> {
     const devices: Array<MediaDeviceInfo> = await AgoraRTC.getDevices(true);
     callback && callback(devices);
@@ -654,12 +657,12 @@ export default class RtcEngine {
   async setChannelProfile(profile: ChannelProfile): Promise<void> {
     try {
       this.client = AgoraRTC.createClient({
-        codec: 'vp8',
+        codec: "vp8",
         mode:
           profile === ChannelProfile.LiveBroadcasting ? mode.live : mode.rtc,
       });
       this.screenClient = AgoraRTC.createClient({
-        codec: 'vp8',
+        codec: "vp8",
         mode:
           profile === ChannelProfile.LiveBroadcasting ? mode.live : mode.rtc,
       });
@@ -670,7 +673,7 @@ export default class RtcEngine {
 
   async setClientRole(
     clientRole: ClientRole,
-    options?: ClientRoleOptions,
+    options?: ClientRoleOptions
   ): Promise<void> {
     try {
       if (clientRole == ClientRole.Audience) {
@@ -707,7 +710,7 @@ export default class RtcEngine {
       const devices = await AgoraRTC.getDevices(true);
       for (let i = 0; i < devices.length; i++) {
         let d = devices[i];
-        if (d.kind === 'videoinput' && d.deviceId !== this.videoDeviceId) {
+        if (d.kind === "videoinput" && d.deviceId !== this.videoDeviceId) {
           await this.localStream.video?.setDevice(d.deviceId);
           this.videoDeviceId = d.deviceId;
           break;
@@ -742,7 +745,7 @@ export default class RtcEngine {
   }
 
   async enableDualStreamMode(enable: boolean) {
-    return this.client[enable ? 'enableDualStream' : 'disableDualStream']();
+    return this.client[enable ? "enableDualStream" : "disableDualStream"]();
     // enable
     //   ? this.client.enableDualStream(
     //       () => {
@@ -766,7 +769,7 @@ export default class RtcEngine {
       this.client.setStreamFallbackOption(stream, option);
     });
     Promise.resolve();
-    console.log('!set fallback');
+    console.log("!set fallback");
   }
 
   getEncryptionMode = (enabled: boolean, encryptmode: RnEncryptionEnum) => {
@@ -774,24 +777,24 @@ export default class RtcEngine {
     if (enabled) {
       switch (encryptmode) {
         case RnEncryptionEnum.None:
-          mode = 'none';
+          mode = "none";
           break;
         case RnEncryptionEnum.AES128ECB:
-          mode = 'aes-128-ecb';
+          mode = "aes-128-ecb";
           break;
         case RnEncryptionEnum.AES128XTS:
-          mode = 'aes-128-xts';
+          mode = "aes-128-xts";
           break;
         case RnEncryptionEnum.AES256XTS:
-          mode = 'aes-256-xts';
+          mode = "aes-256-xts";
           break;
         case RnEncryptionEnum.SM4128ECB:
-          mode = 'sm4-128-ecb';
+          mode = "sm4-128-ecb";
         default:
-          mode = 'none';
+          mode = "none";
       }
     } else {
-      mode = 'none';
+      mode = "none";
     }
     return mode;
   };
@@ -801,7 +804,7 @@ export default class RtcEngine {
     config: {
       encryptionMode: RnEncryptionEnum;
       encryptionKey: string;
-    },
+    }
   ): Promise<void> {
     let mode: EncryptionMode;
     mode = this.getEncryptionMode(enabled, config?.encryptionMode);
@@ -821,7 +824,7 @@ export default class RtcEngine {
    */
   setEncryptionSecret(secret: string) {
     // this.client.setEncryptionSecret(secret);
-    console.error('Please use enableEncryption instead');
+    console.error("Please use enableEncryption instead");
   }
 
   /**
@@ -829,19 +832,19 @@ export default class RtcEngine {
    * @param encryptionMode
    */
   setEncryptionMode(
-    encryptionMode: 'aes-128-xts' | 'aes-256-xts' | 'aes-128-ecb',
+    encryptionMode: "aes-128-xts" | "aes-256-xts" | "aes-128-ecb"
   ) {
     // this.client.setEncryptionMode(encryptionMode);
-    console.error('Please use enableEncryption instead');
+    console.error("Please use enableEncryption instead");
   }
 
   async destroy(): Promise<void> {
     if (this.inScreenshare) {
-      (this.eventsMap.get('UserOffline') as callbackType)(
-        this.screenClient.uid,
+      (this.eventsMap.get("UserOffline") as callbackType)(
+        this.screenClient.uid
       );
       this.screenClient.leave();
-      (this.eventsMap.get('ScreenshareStopped') as callbackType)();
+      (this.eventsMap.get("ScreenshareStopped") as callbackType)();
     }
     this.eventsMap.forEach((callback, event, map) => {
       this.client.off(event, callback);
@@ -864,16 +867,16 @@ export default class RtcEngine {
 
   async setRemoteVideoStreamType(
     uid: number,
-    streamType: VideoStreamType,
+    streamType: VideoStreamType
   ): Promise<void> {
     return this.client.setRemoteVideoStreamType(
       uid,
-      streamType as unknown as RemoteStreamType,
+      streamType as unknown as RemoteStreamType
     );
   }
 
   isSingleTrack(
-    x: ILocalVideoTrack | [ILocalVideoTrack, ILocalAudioTrack],
+    x: ILocalVideoTrack | [ILocalVideoTrack, ILocalAudioTrack]
   ): x is ILocalVideoTrack {
     if ((x as [ILocalVideoTrack, ILocalAudioTrack]).length) {
       return false;
@@ -894,11 +897,11 @@ export default class RtcEngine {
       mode: RnEncryptionEnum;
     },
     config: ScreenVideoTrackInitConfig = {},
-    audio: 'enable' | 'disable' | 'auto' = 'auto',
+    audio: "enable" | "disable" | "auto" = "auto"
   ): Promise<void> {
     if (!this.inScreenshare) {
       try {
-        console.log('[screenshare]: creating stream');
+        console.log("[screenshare]: creating stream");
 
         if (encryption && encryption.screenKey && encryption.mode) {
           let mode: EncryptionMode;
@@ -911,16 +914,16 @@ export default class RtcEngine {
              */
             await this.screenClient.setEncryptionConfig(
               mode,
-              encryption.screenKey,
+              encryption.screenKey
             );
           } catch (e) {
-            console.log('e: Encryption for screenshare failed', e);
+            console.log("e: Encryption for screenshare failed", e);
           }
         }
 
         const screenTracks = await AgoraRTC.createScreenVideoTrack(
           config,
-          audio,
+          audio
         );
         if (this.isSingleTrack(screenTracks)) {
           this.screenStream.video = screenTracks;
@@ -929,7 +932,7 @@ export default class RtcEngine {
           this.screenStream.audio = screenTracks[1];
         }
       } catch (e) {
-        console.log('[screenshare]: Error during intialization');
+        console.log("[screenshare]: Error during intialization");
         throw e;
       }
 
@@ -937,19 +940,19 @@ export default class RtcEngine {
         this.appId,
         channelName,
         token || null,
-        optionalUid || null,
+        optionalUid || null
       );
 
       this.inScreenshare = true;
       await this.screenClient.publish(
         this.screenStream.audio
           ? [this.screenStream.video, this.screenStream.audio]
-          : this.screenStream.video,
+          : this.screenStream.video
       );
 
-      this.screenStream.video.on('track-ended', () => {
-        (this.eventsMap.get('UserOffline') as callbackType)(
-          this.screenClient.uid,
+      this.screenStream.video.on("track-ended", () => {
+        (this.eventsMap.get("UserOffline") as callbackType)(
+          this.screenClient.uid
         );
 
         this.screenClient.leave();
@@ -958,15 +961,15 @@ export default class RtcEngine {
         this.screenStream.video?.close();
         this.screenStream = {};
 
-        (this.eventsMap.get('ScreenshareStopped') as callbackType)();
+        (this.eventsMap.get("ScreenshareStopped") as callbackType)();
         this.inScreenshare = false;
       });
     } else {
-      (this.eventsMap.get('UserOffline') as callbackType)(
-        this.screenClient.uid,
+      (this.eventsMap.get("UserOffline") as callbackType)(
+        this.screenClient.uid
       );
       this.screenClient.leave();
-      (this.eventsMap.get('ScreenshareStopped') as callbackType)();
+      (this.eventsMap.get("ScreenshareStopped") as callbackType)();
       try {
         this.screenStream.audio?.close();
         this.screenStream.video?.close();
