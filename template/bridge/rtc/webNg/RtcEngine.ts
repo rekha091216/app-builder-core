@@ -202,7 +202,6 @@ export default class RtcEngine {
   private muteLocalVideoMutex = false;
   private muteLocalAudioMutex = false;
   private speakerDeviceId = "";
-  private isAinsEnabled = false;
   // Create channel profile and set it here
 
   // Create channel profile and set it here
@@ -275,7 +274,6 @@ export default class RtcEngine {
         .getSettings().deviceId;
       this.isVideoEnabled = true;
       this.isAudioEnabled = true;
-      this.isAinsEnabled = false;
     } catch (e) {
       let audioError = false;
       let videoError = false;
@@ -297,7 +295,6 @@ export default class RtcEngine {
           ?.getMediaStreamTrack()
           .getSettings().deviceId;
         this.isVideoEnabled = true;
-        this.isAinsEnabled = false;
       } catch (error) {
         videoError = error;
       }
