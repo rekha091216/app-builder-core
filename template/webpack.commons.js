@@ -143,7 +143,18 @@ module.exports = {
         test: /\.css$/i,
         use: ["style-loader", "css-loader"],
       },
-
+      {
+        test: /\.(wasm)$/i,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+             outputPath: 'wasm',
+              name: '[name].[ext]',
+            },
+          },
+        ],
+      }
     ],
   },
 };
