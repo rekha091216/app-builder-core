@@ -4,7 +4,8 @@ import Toggle from "../../src/atoms/Toggle";
 import { View, Text, StyleSheet } from "react-native";
 import { RtcContext } from "../../agora-rn-uikit";
 
-const AinsButton = (props) => {
+const AinsButton = () => {
+
   const [ainsToggle, setAinsToggle] = useState(false);
   const { RtcEngine, dispatch } = useContext(RtcContext);
 
