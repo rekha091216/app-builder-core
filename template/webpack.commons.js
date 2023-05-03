@@ -149,8 +149,8 @@ module.exports = {
           {
             loader: 'file-loader',
               options: {
-                outputPath: 'wasm',
-                name: '[name].[ext]',
+                  outputPath: 'wasm',
+                  name: '[name].[ext]',
             },
           },
         ],
