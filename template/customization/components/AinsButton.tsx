@@ -14,7 +14,8 @@ const AinsButton = () => {
       color: $config.PRIMARY_ACTION_TEXT_COLOR,
       fontSize: 12,
       fontFamily: "Source Sans Pro",
-      marginTop: "16px",
+      textAlign:'center',
+      marginTop: "18px",
     },
   });
 
